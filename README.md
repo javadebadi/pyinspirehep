@@ -17,9 +17,9 @@ The class `Client` is the simple Python wrapper to get data from Inspirehep API.
 ```Python
 from pyinsiprehep import Client
 
->>> client = Client()
->>> paper = client.get_literature("451647")
->>> paper["metadata"]["titles"][0]["title"]
+client = Client()
+paper = client.get_literature("451647")
+paper["metadata"]["titles"][0]["title"]
 'The Large N limit of superconformal field theories and supergravity'
 ```
 The other method of the `Client` which may be usefull are here:
