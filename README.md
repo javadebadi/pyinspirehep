@@ -1,5 +1,5 @@
 # pyinspirehep
-The [pyinspirehep](https://pypi.org/project/pyinspirehep/) is a package which is a simple wrapper of **inspirehep API** in Python.
+The [pyinspirehep](https://pypi.org/project/pyinspirehep/) is a package which is a simple wrapper of [**inspirehep API**](https://github.com/inspirehep/rest-api-doc) in Python.
 
 ### Installation
 You can install this package using 
