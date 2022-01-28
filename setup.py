@@ -11,4 +11,6 @@ setup(
     version="0.2.1",
     install_requires=['requests'],
     python_requires='>=3.7',
+    license='MIT',
+    url='https://github.com/javadebadi/pyinspirehep',
 )
