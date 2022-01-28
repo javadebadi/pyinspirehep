@@ -66,7 +66,8 @@ class Client:
         return session
 
     def wait_429(self) -> None:
-        """
+        """Wait before sending next request.
+
         Use to wait `LIMIT_TIME` seconds before sending new requests.
         """
         time.sleep(self.LIMIT_TIME)
@@ -80,9 +81,10 @@ class Client:
         Parameters
         ----------
         *args :
+            Passed to `requests.get` as *args.
             
         **kwargs :
-            
+            Passed to `requests.get` as **kwargs.
 
         Returns
         -------
@@ -92,13 +94,17 @@ class Client:
         Raises
         ------
         InspirehepPIDDoesNotExistError
-            When the requested object was not found
+            When the requested object was not found.
+
         InspirehepTooManyRequestsError
             When because of too many request the IP is blocked for
             a few seconds.
 
         """
-        response = requests.get(*args, **kwargs)
+        try:
+            response = requests.get(*args, **kwargs)
+        except requests.exceptions.ConnectionError as e:
+            raise InspirehepTooManyRequestsError(str(e))
         data = response.json()
         if response.status_code == 200:
             return response.json()
@@ -113,6 +119,7 @@ class Client:
 
     def _get_record(
         self,
+        *args,
         identifier_type: str,
         identifier_value: str,
         ) -> dict:
@@ -121,19 +128,38 @@ class Client:
         Parameters
         ----------
         identifier_type : str
+            The `identifier-value` type is a string which determines
+            what type of object to be get. For example, it can be
+            'authors', 'literature', etc.
+
+        identifier_value : str
             The `identifier-value` is a number identifying the given record
             in the INSPIRE database (also called record ID or recid)
-            
-        identifier_value : str
+
+        *args :
+            The fields that must be included in metadata. If not specified, 
+            all possible fields in metadata will be send in response.
 
 
         Returns
         -------
         dict
+            The json data part of the respone as Python dict will be returned.
 
         """
         args = [self.REST_API_URL, identifier_type, identifier_value]
-        return self._get(Client._create_uri(*args))
+        fields = ""
+        if args:
+            fields = ",".join(args)
+        if fields:
+            return self._get(
+                Client._create_uri(*args),
+                params={'fields':fields}
+                )
+        else:
+            return self._get(
+                Client._create_uri(*args)
+                )
 
     def _create_q(
         metadata_field: str,
@@ -163,6 +189,7 @@ class Client:
 
     def _search(
         self,
+        *args,
         identifier_type: str,
         **kwargs,
         ) -> dict:
@@ -170,23 +197,34 @@ class Client:
 
         Parameters
         ----------
+        *args :
+            The fields that must be included in metadata. If not specified, 
+            all possible fields in metadata will be send in response. All
+            items in the *args must be string. Using `Client._create_params`
+            all items in *args will be concatenated and will be the value for
+            fields key in query parameters in request URL.
+            
         identifier_type : str
             
         **kwargs :
+            Keyworod arguments will be passed to `Client._create_params` and 
+            they will created values for query parameters such as size, page,
+            sort and q.
             
 
         Returns
         -------
 
         """
-        args = [self.REST_API_URL, identifier_type]
+        uri_args = [self.REST_API_URL, identifier_type]
         return self._get(
-            Client._create_uri(*args),
-            params=Client._create_params(**kwargs),
+            Client._create_uri(*uri_args),
+            params=Client._create_params(*args, **kwargs),
             )
 
     def _get_record_object(
         self,
+        *args,
         identifier_type: str,
         identifier_value: str,
         ) -> SingleRecordResponse:
@@ -194,6 +232,9 @@ class Client:
 
         Parameters
         ----------
+        *args:
+            The fields that must be included in metadata.
+
         identifier_type : str
             
         identifier_value : str
@@ -205,38 +246,53 @@ class Client:
 
         """
         return SingleRecordResponse.from_response(
-            self._get_record(identifier_type, identifier_value),
+            self._get_record(
+                *args,
+                identifier_type=identifier_type,
+                identifier_value=identifier_value,
+                ),
             )
 
     @staticmethod
     def _create_params(
+        *args,
         sorting: str = None,
         page: str = None,
         size: str = None,
         q: str = None,
-        fields: str = None,
         ) -> dict:
         """
 
         Parameters
         ----------
+        *args:
+            All items in *args must be string. The positional arguments in
+            args will be used as filters of fields of metadata. If no
+            positional arugemnt was provided, then all fields of metadata
+            will be returned in result of the response.
+
         sorting : str
             (Default value = None). Determines the sort roder of objects
             in response.
+
         page : str
             (Default value = None). The page number to get in query.
+
         size : str
             (Default value = None). The number of records in page.
+
         q : str
             (Default value = None). The search query.
-        fields : str
-            (Default value = None). The field in the metadata to be
-            included in respone.
 
         Returns
         -------
         dict
 
+        >>> client = Client()
+        >>> client._create_params('name.value', 'positions', sorting='bestmatch', size=1000, page=1)
+        {'sort': 'bestmatch', 'page': 1, 'size': 1000, 'fields': 'name.value,positions'}
+        >>> client._create_params('name.value', 'positions', sorting='bestmatch', size=1000, page=1, q='control_number:1966745')
+        {'sort': 'bestmatch', 'page': 1, 'size': 1000, 'q': 'control_number:1966745', 'fields': 'name.value,positions'}
         """
         params = {}
         if sorting is not None:
@@ -247,8 +303,12 @@ class Client:
             params['size'] = size  # The number of results returned per page
         if q is not None:
             params['q'] = q  # The search query
-        if fields is not None:
-            params['fields'] = fields  # The fields in the metadata to be returned
+        fields = None  # The fields in the metadata to be returned
+        if args:
+            fields = ",".join(args)
+        if fields:
+            params['fields'] = fields
+
         return params
 
     @staticmethod
@@ -273,12 +333,16 @@ class Client:
     def get_literature(
         self,
         literature_id: str,
+        *args,
         ) -> dict:
         """
 
         Parameters
         ----------
         literature_id : str
+
+        *args :
+            Items to include in metadata.
             
 
         Returns
@@ -291,55 +355,75 @@ class Client:
         >>> paper["metadata"]["titles"][0]["title"]
         'The Large N limit of superconformal field theories and supergravity'
         """
-        return self._get_record('literature', literature_id)
+        return self._get_record(
+            *args,
+            identifier_type='literature',
+            identifier_value=literature_id,
+            )
 
     def get_literature_object(
         self,
         literature_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
         Parameters
         ----------
         literature_id : str
-            
+
+        *args :
+            Items to include in metadata.            
 
         Returns
         -------
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_literature(literature_id),
+        return self._get_record_object(
+            *args,
+            identifier_type='literature',
+            identifier_value=literature_id,
             )
 
     def get_author(
         self,
         author_id: str,
+        *args,
         ) -> dict:
         """
 
         Parameters
         ----------
         author_id : str
-            
+
+        *args :
+            Items to include in metadata.
 
         Returns
         -------
         dict
 
         """
-        return self._get_record('authors', author_id)
+        return self._get_record(
+            *args,
+            identifier_type='authors',
+            identifier_value=author_id,
+            )
 
     def get_author_object(
         self,
         author_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
         Parameters
         ----------
         author_id : str
+
+        *args :
+            Items to include in metadata.
             
 
         Returns
@@ -347,17 +431,18 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_author(author_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='authors',
+            identifier_value=author_id,
+        )
 
     def search_authors(
         self,
+        *args,
         sorting='bestmatch',
-        size=1,
+        size=1000,
         page=1,
-        fields=None,
-        *,
         q=None,
         name=None,
         ) -> dict:
@@ -386,17 +471,18 @@ class Client:
         if name is not None:
             q = Client._create_q('name', 'value', name)
         return self._search(
-            'authors',
+            *args,
+            identifier_type='authors',
             sorting=sorting,
             size=size,
             page=page,
             q=q,
-            fields=fields,
             )
 
     def get_institution(
         self,
         institution_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -410,11 +496,16 @@ class Client:
         dict
 
         """
-        return self._get_record('institutions', institution_id)
+        return self._get_record(
+            *args,
+            identifier_type='institutions',
+            identifier_value=institution_id,
+            )
 
     def get_institution_object(
         self,
         institution_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -428,13 +519,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_institution(institution_id),
+        return self._get_record_object(
+            *args,
+            identifier_type='institutions',
+            identifier_value=institution_id,
             )
 
     def get_conference(
         self,
         conference_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -448,11 +542,16 @@ class Client:
         dict
 
         """
-        return self._get_record('conferences', conference_id)
+        return self._get_record(
+            *args,
+            identifier_type='conferences',
+            identifier_value=conference_id,
+            )
 
     def get_conference_object(
         self,
         conference_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -466,13 +565,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_conference(conference_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='conferences',
+            identifier_value=conference_id,
+        )
 
     def get_seminar(
         self,
         seminar_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -486,11 +588,16 @@ class Client:
         dict
 
         """
-        return self._get_record('seminars', seminar_id)
+        return self._get_record(
+            *args,
+            identifier_type='seminars',
+            identifier_value=seminar_id,
+            )
 
     def get_seminar_object(
         self,
         seminar_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -504,13 +611,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_seminar(seminar_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='seminars',
+            identifier_value=seminar_id,
+        )
 
     def get_journal(
         self,
         journal_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -524,11 +634,16 @@ class Client:
         dict
 
         """
-        return self._get_record('journals', journal_id)
+        return self._get_record(
+            *args,
+            identifier_type='journals',
+            identifier_value=journal_id,
+            )
 
     def get_journal_object(
         self,
         journal_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -542,13 +657,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_journal_object(journal_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='journals',
+            identifier_value=journal_id,
+        )
 
     def get_job(
         self,
         job_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -562,11 +680,16 @@ class Client:
         dict
 
         """
-        return self._get_record('jobs', job_id)
+        return self._get_record(
+            *args,
+            identifier_type='jobs',
+            identifier_value=job_id,
+            )
 
     def get_job_object(
         self,
         job_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -580,13 +703,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_job(job_id)
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='jobs',
+            identifier_value=job_id,
+        )
 
     def get_experiment(
         self,
         experiment_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -600,11 +726,16 @@ class Client:
         dict
 
         """
-        return self._get_record('experiments', experiment_id)
+        return self._get_record(
+            *args,
+            identifier_type='experiments',
+            identifier_value=experiment_id,
+            )
 
     def get_experiment_object(
         self,
         experiment_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -618,13 +749,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_experiment(experiment_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='experiments',
+            identifier_value=experiment_id,
+        )
 
     def get_data(
         self,
         data_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -638,11 +772,16 @@ class Client:
         dict
 
         """
-        return self._get_record('data', data_id)
+        return self._get_record(
+            *args,
+            identifier_type='data',
+            identifier_value=data_id,
+            )
 
     def get_data_object(
         self,
         data_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -656,13 +795,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_data(data_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='data',
+            identifier_value=data_id,
+        )
 
     def get_doi(
         self,
         doi_identifier: str,
+        *args,
         ) -> dict:
         """
 
@@ -680,11 +822,16 @@ class Client:
         >>> literature_record["metadata"]["titles"][-1]["title"]
         'A Model of Leptons'
         """
-        return self._get_record('doi', doi_identifier)
+        return self._get_record(
+            *args,
+            identifier_type='doi',
+            identifier_value=doi_identifier,
+            )
 
     def get_doi_object(
         self,
         doi_identifier: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -698,13 +845,16 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_doi(doi_identifier),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='doi',
+            identifier_value=doi_identifier,
+        )
 
     def get_arxiv(
         self,
         arxiv_identifier: str,
+        *args,
         ) -> dict:
         """
 
@@ -727,11 +877,16 @@ class Client:
         >>> literature_record["metadata"]['titles'][-1]['source']
         'arXiv'
         """
-        return self._get_record('arxiv', arxiv_identifier)
+        return self._get_record(
+            *args,
+            identifier_type='arxiv',
+            identifier_value=arxiv_identifier,
+            )
 
     def get_arxiv_object(
         self,
         arxiv_identifier: str,
+        *args,
         ) -> dict:
         """
 
@@ -745,13 +900,16 @@ class Client:
         SingleRecordResponse
         
         """
-        return SingleRecordResponse.from_response(
-            self.get_arxiv(arxiv_identifier),
+        return self._get_record_object(
+            *args,
+            identifier_type='arxiv',
+            identifier_value=arxiv_identifier,
             )
 
     def get_orcid(
         self,
         orcid_id: str,
+        *args,
         ) -> dict:
         """
 
@@ -770,11 +928,16 @@ class Client:
         >>> author_record["metadata"]["name"]["value"]
         'Seiberg, Nathan'
         """
-        return self._get_record('orcid', orcid_id)
+        return self._get_record(
+            *args,
+            identifier_type='orcid',
+            identifier_value=orcid_id,
+            )
 
     def get_orcid_object(
         self,
         orcid_id: str,
+        *args,
         ) -> SingleRecordResponse:
         """
 
@@ -788,9 +951,11 @@ class Client:
         SingleRecordResponse
 
         """
-        return SingleRecordResponse.from_response(
-            self.get_orcid(orcid_id),
-            )
+        return self._get_record_object(
+            *args,
+            identifier_type='orcid',
+            identifier_value=orcid_id,
+        )
 
 
 if __name__ == '__main__':
