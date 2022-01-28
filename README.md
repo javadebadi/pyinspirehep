@@ -35,6 +35,7 @@ The other method of the `Client` which may be usefull are here:
 - `get_arxiv()`
 - `get_orcid()`
 - `get_data()`
+
 Each of these methods have a docstring you can get using `help` function of the Python. Basically all of them gets an identifier which determines the record in Inspirehep database.
 
 ## Contributing
