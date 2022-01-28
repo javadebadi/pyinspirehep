@@ -41,6 +41,12 @@ class Client:
         ]
 
     LIMIT_TIME = 5
+
+    PAGINATION_LIMIT = 10000
+
+    MAX_RECORDS_PER_PAGE = 1000
+
+    MAX_PAGES = PAGINATION_LIMIT // MAX_RECORDS_PER_PAGE
     
 
     def __init__(self) -> None:
@@ -342,7 +348,7 @@ class Client:
 
         """
         return SingleRecordResponse.from_response(
-            self._get_author(author_id),
+            self.get_author(author_id),
             )
 
     def search_authors(
@@ -404,7 +410,7 @@ class Client:
         dict
 
         """
-        return self._get_record('authors', institution_id)
+        return self._get_record('institutions', institution_id)
 
     def get_institution_object(
         self,
@@ -423,7 +429,7 @@ class Client:
 
         """
         return SingleRecordResponse.from_response(
-            self._get_author(institution_id),
+            self.get_institution(institution_id),
             )
 
     def get_conference(
