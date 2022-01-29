@@ -6,11 +6,11 @@ get data from Inspirehep API.
 """
 
 import requests
+import time
 from pyinspirehep.exception import (
     InspirehepPIDDoesNotExistError,
     InspirehepTooManyRequestsError,
 )
-import time
 from pyinspirehep.data_models import (
     SingleRecordResponse,
 )
