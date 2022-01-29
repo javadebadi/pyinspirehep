@@ -296,6 +296,8 @@ class Author(SingleRecordResponse):
             list of string which shows the proejct memberships.
         
         """
+        if not self.project_membereship:
+            return None
         if current:
             memberships = [project["name"]
                            for project in self.project_membereship if project['current'] == True]
@@ -321,6 +323,8 @@ class Author(SingleRecordResponse):
             list of string which shows the proejct memberships.
         
         """
+        if not self.project_membereship:
+            return None
         if current:
             memberships = [project["record"]['$ref'].split(
                 "/")[-1] for project in self.project_membereship if project['current'] == True]
