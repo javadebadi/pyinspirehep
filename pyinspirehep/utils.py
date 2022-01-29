@@ -78,3 +78,42 @@ def convert_json_timestamp(
         f"time data '{timestamp_str}' does not "
         f"match fomrat {formats}"
     )
+
+
+def convert_to_date(date_str: str, formats: list = None):
+    if formats is None:
+        formats = [
+            '%Y-%m-%d',
+            ]
+    for format in formats:
+        try:
+            return _convert_json_timestamp(
+                date_str,
+                format,
+                ).date()
+        except ValueError:
+            continue
+    raise ValueError(
+        f"date data '{date_str}' does not "
+        f"match fomrat in {formats}"
+    )
+
+
+def convert_to_bool(variable: str = None):
+    """converts variable to boolean.
+
+    It retruns None if the variable is not True or False or true or false.
+
+    Parameters
+    ----------
+    variable : str
+
+    Returns
+    -------
+    bool
+
+    """
+    if bool(variable) is not None:
+        return bool(variable)
+    else:
+        return None

@@ -6,12 +6,15 @@ get data from Inspirehep API.
 """
 
 import requests
+import time
 from pyinspirehep.exception import (
     InspirehepPIDDoesNotExistError,
     InspirehepTooManyRequestsError,
 )
-import time
-from pyinspirehep.data_models import SingleRecordResponse
+from pyinspirehep.data_models import (
+    SingleRecordResponse,
+)
+from pyinspirehep.author import Author
 
 
 class Client:
@@ -415,7 +418,7 @@ class Client:
         self,
         author_id: str,
         *args,
-        ) -> SingleRecordResponse:
+        ) -> Author:
         """
 
         Parameters
@@ -428,13 +431,11 @@ class Client:
 
         Returns
         -------
-        SingleRecordResponse
+        Author
 
         """
-        return self._get_record_object(
-            *args,
-            identifier_type='authors',
-            identifier_value=author_id,
+        return Author.from_response(
+            self.get_author(author_id, *args),
         )
 
     def search_authors(

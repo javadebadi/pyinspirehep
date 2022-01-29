@@ -38,6 +38,30 @@ The other method of the `Client` which may be usefull are here:
 
 Each of these methods have a docstring you can get using `help` function of the Python. Basically all of them gets an identifier which determines the record in Inspirehep database.
 
+#### Author
+There is an `Author` class which is a data models for author objects of Inspirehep and you can use its methods for various operations on Author:
+```Python
+>>> from pyinspirehep import Client
+>>> client = Client()
+>>> author = client.get_author_object('1019113')  # 1019113 is the inspire hep control number of 't Hooft
+>>> author.get_name()
+"'t Hooft, Gerardus"
+>>> author.get_name_preferred()
+"Gerardus 't Hooft"
+>>> author.get_institutions()
+['Utrecht U.', 'Utrecht U.', 'Utrecht U.']
+>>> author.get_institutions_ids()
+['903317', '903317', '903317']
+>>> author.get_id_orcid()
+'0000-0002-5405-5504'
+>>> author.get_arxiv_categories()
+['gr-qc', 'hep-th', 'quant-ph']
+>>> author.get_advisors()
+['Veltman, Martinus J.G.']
+>>> author.get_advisors_id()
+['984831']
+```
+
 ## Contributing
 Everyone who want's to work on this library is welcome to collaborate by creating pull requests or sending email to authors.
 
