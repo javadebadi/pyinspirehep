@@ -13,7 +13,7 @@ setup(
     description="A simple python wrapper for inspirehep API",
     name="pyinspirehep",
     packages=find_packages(include=["pyinspirehep", "pyinspirehep.*"]),
-    version="0.3.0",
+    version="0.3.1",
     install_requires=['requests'],
     python_requires='>=3.7',
     license='MIT',
