@@ -299,11 +299,17 @@ class Author(SingleRecordResponse):
         if not self.project_membereship:
             return None
         if current:
-            memberships = [project["name"]
-                           for project in self.project_membereship if project['current'] == True]
+            memberships = [
+                project["name"]
+                for project in self.project_membereship
+                if project['current'] == True
+                ]
+
         else:
-            memberships = [project["name"]
-                           for project in self.project_membereship]
+            memberships = [
+                project["name"]
+                for project in self.project_membereship
+                ]
         return memberships if memberships else None
 
     def get_project_memberships_ids(self, current=False):
@@ -326,11 +332,16 @@ class Author(SingleRecordResponse):
         if not self.project_membereship:
             return None
         if current:
-            memberships = [project["record"]['$ref'].split(
-                "/")[-1] for project in self.project_membereship if project['current'] == True]
+            memberships = [
+                project["record"]['$ref'].split("/")[-1]
+                for project in self.project_membereship
+                if project['current'] == True
+                ]
         else:
-            memberships = [project["record"]['$ref'].split(
-                "/")[-1] for project in self.project_membereship]
+            memberships = [
+                project["record"]['$ref'].split("/")[-1]
+                for project in self.project_membereship
+                ]
         return memberships if memberships else None
 
     @property
@@ -354,7 +365,10 @@ class Author(SingleRecordResponse):
         
         """
         if self.advisors:
-            return [advisor['record']['$ref'].split("/")[-1] for advisor in self.advisors]
+            return [
+                advisor['record']['$ref'].split("/")[-1]
+                for advisor in self.advisors
+                ]
         else:
             return None
 
@@ -370,7 +384,10 @@ class Author(SingleRecordResponse):
 
         """
         if self.positions:
-            return [position.get("institution", None) for position in self.positions]
+            return [
+                position.get("institution", None)
+                for position in self.positions
+                ]
         else:
             return None
 
@@ -379,7 +396,10 @@ class Author(SingleRecordResponse):
 
         """
         if self.positions:
-            return [position["record"]["$ref"].split("/")[-1] for position in self.positions]
+            return [
+                position["record"]["$ref"].split("/")[-1]
+                for position in self.positions
+                ]
         else:
             return None
 

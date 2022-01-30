@@ -1,6 +1,6 @@
 import datetime
 from unittest import TestCase
-from pyinspirehep.data_models import Author, AuthorMetadata
+from pyinspirehep.author import Author, AuthorMetadata
 
 
 class AuthorTest(TestCase):
