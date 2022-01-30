@@ -344,13 +344,19 @@ class Author(SingleRecordResponse):
         """Returns the advisors of the authors
         
         """
-        return [advisor['name'] for advisor in self.advisors]
+        if self.advisors:
+            return [advisor['name'] for advisor in self.advisors]
+        else:
+            return None
 
     def get_advisors_id(self):
         """Returns the inspire hep if of advisors of the author
         
         """
-        return [advisor['record']['$ref'].split("/")[-1] for advisor in self.advisors]
+        if self.advisors:
+            return [advisor['record']['$ref'].split("/")[-1] for advisor in self.advisors]
+        else:
+            return None
 
     @property
     def positions(self):
@@ -363,13 +369,19 @@ class Author(SingleRecordResponse):
         """Returns name of institutions of the author
 
         """
-        return [position.get("institution", None) for position in self.positions]
+        if self.positions:
+            return [position.get("institution", None) for position in self.positions]
+        else:
+            return None
 
     def get_institutions_ids(self):
         """Returns ids of institutions of the author
 
         """
-        return [position["record"]["$ref"].split("/")[-1] for position in self.positions]
+        if self.positions:
+            return [position["record"]["$ref"].split("/")[-1] for position in self.positions]
+        else:
+            return None
 
     def get_positions(self):
         """Returns dict of positions of the authors
