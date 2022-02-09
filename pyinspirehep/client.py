@@ -389,6 +389,50 @@ class Client:
             identifier_value=literature_id,
             )
 
+    def search_literature(
+        self,
+        *args,
+        sorting='mostrecent',
+        size=1,
+        page=1,
+        q=None,
+        ) -> dict:
+        """
+
+        Parameters
+        ----------
+        sorting : str
+             (Default value = 'mostrecent')
+
+        size : int
+             (Default value = 1)
+
+        page : int
+             (Default value = 1)
+
+        q :
+             (Default value = None)
+
+        name :
+             (Default value = None)
+
+        Returns
+        -------
+        dict
+
+        >>> c = Client()
+        >>> literature = c.search_literature(q="control_number:1->10000")
+
+        """
+        return self._search(
+            *args,
+            identifier_type='literature',
+            sorting=sorting,
+            size=size,
+            page=page,
+            q=q,
+        )
+
     def get_author(
         self,
         author_id: str,
