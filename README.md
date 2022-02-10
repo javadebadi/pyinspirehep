@@ -62,6 +62,18 @@ There is an `Author` class which is a data models for author objects of Inspireh
 ['984831']
 ```
 
+### Clone
+The are classes in `pyinspirehpe.contrib.clone` module which can be used to clone all avaialable data. For example to get all literature data from the API:
+```Python
+>>> import os
+>>> from pathlib import Path
+>>> from pyinspirehep.contrib.clone import LiteratureClone
+>>> directory = os.path.join(Path.home(), "Desktop", "literature")
+>>> cloner = LiteratureClone(directory)
+>>> cloner.clone()
+``` 
+Note that you need stable interent connection to clone all data. The data will be saved as json file batches in a directory and if you lost the connection, you can re-run the `clone` method by givin the appropriate arguments.
+
 ## Contributing
 Everyone who want's to work on this library is welcome to collaborate by creating pull requests or sending email to authors.
 
