@@ -365,6 +365,35 @@ class Client:
             identifier_value=literature_id,
             )
 
+    def get_literature_citations(
+        self,
+        literature_id: str,
+        size=1000,
+        page=1,
+        ):
+        """
+
+        Parameters
+        ----------
+        literature_id : str
+            The id of literature that its citations are wanted
+
+        Returns
+        -------
+        dict
+
+        >>> client = Client()
+        >>> paper = client.get_literature("1785369")
+        >>> len(client.get_literature_citations("1785369")["hits"]["hits"][1]["metadata"]["references"])
+        133
+        """
+        args=[
+            self.REST_API_URL + 'literature',
+            f"?q=refersto%3Arecid%3A{literature_id}" + f'&size={size}' + f'&page={page}',
+            ]
+        print(Client._create_uri(*args))
+        return self._get(Client._create_uri(*args))
+
     def get_literature_object(
         self,
         literature_id: str,

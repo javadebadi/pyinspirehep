@@ -62,6 +62,20 @@ There is an `Author` class which is a data models for author objects of Inspireh
 ['984831']
 ```
 
+#### Literature
+There is a `Literature` class which is a data model for literature objects of Inspirhep and you can use that for operations on literature objects:
+```Python
+>>> from pyinspirehep.client import Client
+>>> client = Client()
+>>> literature = client.get_literature_object('1713040')
+>>> n_citations = literature.get_citation_count()
+>>> print(n_citations)
+26
+>>> references_ids = literature.get_references_ids()
+>>> print(references_ids)
+['3438', '537599', '1707528', '119084', '1334702', '1334702', '1489868', '534214', '1702664', '1512593', '1685089', '1509929', '1391503', '1317641', '1596919', '1614158', '1628805', '1477399', '1697838', '1709994', '1665240', '1699990', '1712684', '1702624', '1257621', '922834', '912611', '1121392', '712925', '1244313', '796887', '1614097', '955176', '779080', '1500696', '1364506', '1500688', '1409104', '1603635', '1633591', '1094530', '1318669', '1114764', '1473822', '1208951', '1241586', '1307489', '918766', '918766', '1644387', '1335264', '1699055', '1468075']
+```
+
 ### Clone
 The are classes in `pyinspirehpe.contrib.clone` module which can be used to clone all avaialable data. For example to get all literature data from the API:
 ```Python
