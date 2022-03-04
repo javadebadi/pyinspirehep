@@ -60,6 +60,8 @@ def convert_json_timestamp(
         When no format was matches this error will be raised.
 
     """
+    if timestamp_str is None:
+        return None
     if formats is None:
         formats = [
             '%Y-%m-%dT%H:%M:%S%z',
@@ -81,6 +83,8 @@ def convert_json_timestamp(
 
 
 def convert_to_date(date_str: str, formats: list = None):
+    if date_str is None:
+        return None
     if formats is None:
         formats = [
             '%Y-%m-%d',

@@ -15,6 +15,7 @@ from pyinspirehep.data_models import (
     SingleRecordResponse,
 )
 from pyinspirehep.author import Author
+from pyinspirehep.literature import Literature
 
 
 class Client:
@@ -383,11 +384,9 @@ class Client:
         SingleRecordResponse
 
         """
-        return self._get_record_object(
-            *args,
-            identifier_type='literature',
-            identifier_value=literature_id,
-            )
+        return Literature.from_response(
+            self.get_literature(literature_id, *args),
+        )
 
     def search_literature(
         self,
