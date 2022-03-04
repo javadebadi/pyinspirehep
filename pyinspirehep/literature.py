@@ -9,6 +9,7 @@ resulf of literature search.
 """
 
 import datetime
+import logging
 from dataclasses import dataclass
 from datetime import date
 from typing import List
@@ -171,6 +172,9 @@ class Literature(SingleRecordResponse):
             metadata=metadata,
         )
 
+    def get_control_number(self):
+        return self.metadata.control_number
+
     def get_citation_count(self):
         return self.metadata.citation_count
 
@@ -178,6 +182,13 @@ class Literature(SingleRecordResponse):
         ids = []
         if self.metadata.references:
             for item in self.metadata.references:
-                ids.append(item['record']['$ref'].split("/")[-1])
+                try:
+                    ids.append(item['record']['$ref'].split("/")[-1])
+                except KeyError:
+                    logging.warning(
+                        f"A Reference with no record in Inspirehep for "
+                        f"literature with "
+                        f"control_number = {self.get_control_number()}"
+                    )
         return ids
 
